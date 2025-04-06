@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - inventory-service
+      - order-service
+    environment:
+      - INVENTORY_SERVICE_URL=http://inventory-service:8081
+      - ORDER_SERVICE_URL=http://order-service:8082
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+    ports:
+      - "8081:8081"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/inventory
+    depends_on:
+      - db
+
+  order-service:
+    build:
+      context: ./order-service
+    ports:
+      - "8082:8082"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/orders
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
