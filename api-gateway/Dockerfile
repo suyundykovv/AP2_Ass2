@@ -1,20 +1,16 @@
-FROM golang:1.19 AS builder
+FROM golang:1.19
 
 WORKDIR /app
 
+# Copy module files and download dependencies
 COPY go.mod go.sum ./
-RUN go mod download 
+RUN go mod download
 
+# Copy the entire project
 COPY . .
 
-RUN go build -o api-gateway ./cmd/main.go
-
-FROM alpine:latest
-
-WORKDIR /root/
-
-COPY --from=builder /app/api-gateway .
-
+# Expose the port used by the API Gateway
 EXPOSE 8080
 
-CMD [ "./api-gateway" ]
+# Run the Go application directly
+CMD ["go", "run", "./cmd/main.go"]
