@@ -1,23 +1,17 @@
 package config
 
 import (
-	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
-func LoadConfig() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Не удалось загрузить .env файл, используя переменные окружения")
-	}
+type Config struct {
+	OrderServiceURL     string
+	InventoryServiceURL string
 }
 
-func GetEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
+func LoadConfig() Config {
+	return Config{
+		OrderServiceURL:     os.Getenv("http://localhost:8082"), // e.g., http://order-service:8082
+		InventoryServiceURL: os.Getenv("http://localhost:8081"), // e.g., http://inventory-service:8081
 	}
-	return value
 }

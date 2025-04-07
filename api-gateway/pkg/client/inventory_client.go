@@ -1,13 +1,33 @@
 package client
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 )
 
-func FetchInventory() (*http.Response, error) {
-	resp, err := http.Get("http://inventory-service:8081/products")
+type InventoryClient struct {
+	BaseURL string
+}
+
+func NewInventoryClient(baseURL string) *InventoryClient {
+	return &InventoryClient{BaseURL: baseURL}
+}
+
+func (c *InventoryClient) ForwardRequest(method, path string, body []byte) ([]byte, error) {
+	url := c.BaseURL + path
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }

@@ -19,7 +19,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:password@db1:5433/inventory
     depends_on:
-      - db1
+      - db-inventory
 
   order-service:
     build:
@@ -29,30 +29,32 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:password@db2:5434/orders
     depends_on:
-      - db2
+      - db-order
 
-  db1:
+  db-order:
     image: postgres:15
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: inventory
+      POSTGRES_DB: order_service_db
     ports:
-      - "5433:5433"
+      - "5433:5432" # Expose this DB on port 5433
     volumes:
-      - db1_data:/var/lib/postgresql/data
+      - db_order_data:/var/lib/postgresql/data
+      - ./order-service/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  db2:
+  db-inventory:
     image: postgres:15
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: orders
+      POSTGRES_DB: inventory_service_db
     ports:
-      - "5434:5434" 
+      - "5434:5432" # Expose this DB on port 5434
     volumes:
-      - db2_data:/var/lib/postgresql/data
+      - db_inventory_data:/var/lib/postgresql/data
+      - ./inventory-service/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
-  db1_data:
-  db2_data:
+  db_order_data:
+  db_inventory_data:
