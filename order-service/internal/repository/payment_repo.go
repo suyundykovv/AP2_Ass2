@@ -1,20 +1,30 @@
 package repository
 
-import "order-service/pkg/models"
+import (
+	"database/sql"
+	"order-service/pkg/models"
+)
 
-var payments = []models.Payment{}
-
-func CreatePayment(payment models.Payment) {
-	payments = append(payments, payment)
-}
-
-func GetPaymentByID(id int) *models.Payment {
-	for _, payment := range payments {
-		if payment.ID == id {
-			return &payment
-		}
+// CreatePayment inserts a new payment into the database
+func CreatePayment(db *sql.DB, payment *models.Payment) error {
+	query := `INSERT INTO payments (order_id, amount, method, status) 
+			  VALUES ($1, $2, $3, $4) RETURNING id`
+	err := db.QueryRow(query, payment.OrderID, payment.Amount, payment.Method, payment.Status).Scan(&payment.ID)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-// Добавьте другие функции для обработки платежей...
+// GetPaymentByID fetches a payment by ID from the database
+func GetPaymentByID(db *sql.DB, id int) (*models.Payment, error) {
+	var payment models.Payment
+	query := `SELECT id, order_id, amount, method, status FROM payments WHERE id = $1`
+	err := db.QueryRow(query, id).Scan(&payment.ID, &payment.OrderID, &payment.Amount, &payment.Method, &payment.Status)
+	if err == sql.ErrNoRows {
+		return nil, nil // No payment found
+	} else if err != nil {
+		return nil, err
+	}
+	return &payment, nil
+}

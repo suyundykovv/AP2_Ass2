@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"net/http"
 	"strconv"
 
@@ -10,28 +11,44 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateOrderHandler(c *gin.Context) {
-	var order models.Order
-	if err := c.ShouldBindJSON(&order); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+// CreateOrderHandler creates a new order in the database
+func CreateOrderHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var order models.Order
+		if err := c.ShouldBindJSON(&order); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		err := repository.CreateOrder(db, &order)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, order)
 	}
-	repository.CreateOrder(order)
-	c.JSON(http.StatusCreated, order)
 }
 
-func GetOrderHandler(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
-		return
-	}
-	order := repository.GetOrderByID(id)
-	if order == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
-		return
-	}
-	c.JSON(http.StatusOK, order)
-}
+// GetOrderHandler retrieves an order by ID from the database
+func GetOrderHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
+			return
+		}
 
-// Добавьте другие функции: ListOrdersHandler, UpdateOrderHandler, DeleteOrderHandler...
+		order, err := repository.GetOrderByID(db, id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if order == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, order)
+	}
+}
