@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"inventory-service/internal/repository"
+	"inventory-service/internal/service"
 	"inventory-service/pkg/models"
 
 	"github.com/gin-gonic/gin"
