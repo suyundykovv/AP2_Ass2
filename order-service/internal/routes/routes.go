@@ -1,18 +1,14 @@
 package routes
 
 import (
+	"database/sql"
 	"order-service/internal/handler"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(router *gin.Engine) {
-	router.POST("/orders", handler.CreateOrderHandler)
-	router.GET("/orders/:id", handler.GetOrderHandler)
-	// router.GET("/orders", handler.ListOrdersHandler)
-	// router.PUT("/orders/:id", handler.UpdateOrderHandler)
-	// router.DELETE("/orders/:id", handler.DeleteOrderHandler)
-
-	router.POST("/payments", handler.ProcessPaymentHandler)
-	router.GET("/payments/:id", handler.GetPaymentHandler)
+func SetupRoutes(router *gin.Engine, db *sql.DB) {
+	router.GET("/orders", handler.GetOrdersHandler(db))
+	router.POST("/orders", handler.CreateOrderHandler(db))
+	router.GET("/payments", handler.GetPaymentsHandler(db))
 }

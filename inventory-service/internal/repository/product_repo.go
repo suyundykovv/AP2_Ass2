@@ -1,51 +1,24 @@
 package repository
 
 import (
-	"fmt"
+	"database/sql"
 	"inventory-service/pkg/models"
 )
 
-// Хранилище продуктов
-var products = []models.Product{}
+// CreateProduct inserts a new product into the database
+func CreateProduct(db *sql.DB, product *models.Product) error {
+	query := `INSERT INTO products (name, category_id, price, stock) VALUES ($1, $2, $3, $4) RETURNING id`
+	return db.QueryRow(query, product.Name, product.CategoryID, product.Price, product.Stock).Scan(&product.ID)
 
-// CreateProduct добавляет новый продукт в хранилище
-func CreateProduct(product models.Product) {
-	products = append(products, product)
 }
 
-// GetProductByID возвращает продукт по ID
-func GetProductByID(id int) *models.Product {
-	for _, product := range products {
-		if product.ID == id {
-			return &product
-		}
+// GetProductByID fetches a product by ID from the database
+func GetProductByID(db *sql.DB, id int) (*models.Product, error) {
+	var product models.Product
+	query := `SELECT id, name, category_id, price, stock FROM products WHERE id = $1`
+	err := db.QueryRow(query, id).Scan(&product.ID, &product.Name, &product.CategoryID, &product.Price, &product.Stock)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
-
-// UpdateProduct обновляет информацию о продукте
-func UpdateProduct(id int, updatedProduct models.Product) error {
-	for i, product := range products {
-		if product.ID == id {
-			products[i] = updatedProduct
-			return nil
-		}
-	}
-	return fmt.Errorf("product with ID %d not found", id)
-}
-
-// DeleteProduct удаляет продукт по ID
-func DeleteProduct(id int) error {
-	for i, product := range products {
-		if product.ID == id {
-			products = append(products[:i], products[i+1:]...)
-			return nil
-		}
-	}
-	return fmt.Errorf("product with ID %d not found", id)
-}
-
-// ListProducts возвращает список всех продуктов
-func ListProducts() []models.Product {
-	return products
+	return &product, nil
 }

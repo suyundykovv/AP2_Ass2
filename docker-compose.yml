@@ -17,9 +17,14 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - DATABASE_URL=postgresql://user:password@db1:5433/inventory
+      - DB_HOST=db-inventory
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=inventory_service_db
     depends_on:
       - db-inventory
+
 
   order-service:
     build:
@@ -27,9 +32,15 @@ services:
     ports:
       - "8082:8082"
     environment:
-      - DATABASE_URL=postgresql://user:password@db2:5434/orders
+      DB_HOST: db-order
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: order_service_db
+      ORDER_SERVICE_PORT: 8082
     depends_on:
       - db-order
+
 
   db-order:
     image: postgres:15
@@ -38,10 +49,11 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: order_service_db
     ports:
-      - "5433:5432" # Expose this DB on port 5433
+      - "5433:5432"
     volumes:
       - db_order_data:/var/lib/postgresql/data
       - ./order-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+
 
   db-inventory:
     image: postgres:15
@@ -50,10 +62,11 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: inventory_service_db
     ports:
-      - "5434:5432" # Expose this DB on port 5434
+      - "5434:5432" # External port 5434, internal PostgreSQL port 5432
     volumes:
       - db_inventory_data:/var/lib/postgresql/data
       - ./inventory-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+
 
 volumes:
   db_order_data:

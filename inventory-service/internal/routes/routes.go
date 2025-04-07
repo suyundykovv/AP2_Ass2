@@ -1,21 +1,19 @@
 package routes
 
 import (
+	"database/sql"
 	"inventory-service/internal/handler"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(router *gin.Engine) {
-	router.POST("/products", handler.CreateProductHandler)
-	router.GET("/products/:id", handler.GetProductHandler)
-	// router.GET("/products", handler.ListProductsHandler)
-	// router.PUT("/products/:id", handler.UpdateProductHandler)
-	// router.DELETE("/products/:id", handler.DeleteProductHandler)
+func SetupRoutes(router *gin.Engine, db *sql.DB) {
+	router.POST("/products", handler.CreateProductHandler(db))
+	router.GET("/products/:id", handler.GetProductHandler(db))
 
-	router.POST("/categories", handler.CreateCategoryHandler)
-	router.GET("/categories/:id", handler.GetCategoryHandler)
-	// router.GET("/categories", handler.ListCategoriesHandler)
-	// router.PUT("/categories/:id", handler.UpdateCategoryHandler)
-	// router.DELETE("/categories/:id", handler.DeleteCategoryHandler)
+	router.GET("/categories", handler.ListCategoriesHandler(db))
+	router.PUT("/categories/:id", handler.UpdateCategoryHandler(db))
+	router.DELETE("/categories/:id", handler.DeleteCategoryHandler(db))
+	router.POST("/categories", handler.CreateCategoryHandler(db))
+	router.GET("/categories/:id", handler.GetCategoryHandler(db))
 }

@@ -1,59 +1,73 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"inventory-service/pkg/models"
 )
 
-var categories = []models.Category{}
-
-// CreateCategory добавляет новую категорию
-func CreateCategory(category models.Category) {
-	categories = append(categories, category)
+// GetCategoryByID fetches a category by ID from the database
+func GetCategoryByID(db *sql.DB, id int) (*models.Category, error) {
+	var category models.Category
+	query := `SELECT id, name FROM categories WHERE id = $1`
+	err := db.QueryRow(query, id).Scan(&category.ID, &category.Name)
+	if err == sql.ErrNoRows {
+		return nil, nil // No category found
+	} else if err != nil {
+		return nil, err
+	}
+	return &category, nil
 }
 
-// GetCategoryByID возвращает категорию по ID
-func GetCategoryByID(id int) *models.Category {
-	for _, category := range categories {
-		if category.ID == id {
-			return &category
-		}
+// UpdateCategory updates a category by ID in the database
+func UpdateCategory(db *sql.DB, id int, updatedCategory models.Category) error {
+	query := `UPDATE categories SET name = $1 WHERE id = $2`
+	result, err := db.Exec(query, updatedCategory.Name, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("category with ID %d not found", id)
 	}
 	return nil
 }
 
-// UpdateCategory обновляет существующую категорию по ID
-func UpdateCategory(id int, updatedCategory models.Category) error {
-	for i, category := range categories {
-		if category.ID == id {
-			categories[i] = updatedCategory
-			return nil
-		}
+// repository/category.go
+
+func CreateCategory(db *sql.DB, category models.Category) error {
+	query := `INSERT INTO categories (name) VALUES ($1)`
+	_, err := db.Exec(query, category.Name)
+	return err
+}
+func GetAllCategories(db *sql.DB) ([]models.Category, error) {
+	query := `SELECT id, name FROM categories`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
 	}
-	return fmt.Errorf("category with ID %d not found", id)
+	defer rows.Close()
+
+	var categories []models.Category
+	for rows.Next() {
+		var cat models.Category
+		if err := rows.Scan(&cat.ID, &cat.Name); err != nil {
+			return nil, err
+		}
+		categories = append(categories, cat)
+	}
+	return categories, nil
 }
 
-// DeleteCategory удаляет категорию по ID
-func DeleteCategory(id int) error {
-	for i, category := range categories {
-		if category.ID == id {
-			categories = append(categories[:i], categories[i+1:]...)
-			return nil
-		}
+func DeleteCategory(db *sql.DB, id int) error {
+	query := `DELETE FROM categories WHERE id = $1`
+	result, err := db.Exec(query, id)
+	if err != nil {
+		return err
 	}
-	return fmt.Errorf("category with ID %d not found", id)
-}
-
-// ListCategories возвращает список всех категорий
-func ListCategories() []models.Category {
-	return categories
-}
-func GetProductsByCategory(categoryID int) []models.Product {
-	var categoryProducts []models.Product
-	for _, product := range products {
-		if product.ID == categoryID { // Предполагается, что CategoryID — это int
-			categoryProducts = append(categoryProducts, product)
-		}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("category with ID %d not found", id)
 	}
-	return categoryProducts
+	return nil
 }
