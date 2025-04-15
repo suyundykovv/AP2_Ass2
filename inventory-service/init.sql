@@ -2,6 +2,16 @@ CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL
 );
+CREATE TABLE discounts (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    discount_percentage FLOAT NOT NULL,
+    applicable_products JSONB,
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    is_active BOOLEAN
+);
 
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,

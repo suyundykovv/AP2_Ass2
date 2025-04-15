@@ -15,7 +15,8 @@ func NewInventoryClient(baseURL string) *InventoryClient {
 }
 
 func (c *InventoryClient) ForwardRequest(method, path string, body []byte) ([]byte, error) {
-	url := c.BaseURL + path
+	url := "http://inventory-service:8081/" + path
+
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err

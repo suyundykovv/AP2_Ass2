@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package inventory;
+
+option go_package = "inventory-service/proto/inventory";
+
+service InventoryService {
+  rpc CreateItem (CreateItemRequest) returns (CreateItemResponse);
+  rpc GetItem (GetItemRequest) returns (GetItemResponse);
+  rpc UpdateItem (UpdateItemRequest) returns (UpdateItemResponse);
+  rpc DeleteItem (DeleteItemRequest) returns (DeleteItemResponse);
+}
+
+message CreateItemRequest {
+  string name = 1;
+  int32 quantity = 2;
+}
+
+message CreateItemResponse {
+  int32 item_id = 1;
+  string status = 2;
+}
+
+message GetItemRequest {
+  int32 item_id = 1;
+}
+
+message GetItemResponse {
+  int32 item_id = 1;
+  string name = 2;
+  int32 quantity = 3;
+}
+
+message UpdateItemRequest {
+  int32 item_id = 1;
+  string name = 2;
+  int32 quantity = 3;
+}
+
+message UpdateItemResponse {
+  string status = 1;
+}
+
+message DeleteItemRequest {
+  int32 item_id = 1;
+}
+
+message DeleteItemResponse {
+  string status = 1;
+}

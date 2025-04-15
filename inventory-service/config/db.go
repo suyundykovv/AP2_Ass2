@@ -4,34 +4,33 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
+	"os"
 
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
-// ConnectToDatabase с попытками подключения
-func ConnectToDatabase(host, port, user, password, dbname string) *sql.DB {
-	var db *sql.DB
-	var err error
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
+func InitDB() (*sql.DB, error) {
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
 
-	// Попытки подключения к базе данных
-	for i := 0; i < 5; i++ { // Попытаться подключиться 5 раз
-		db, err = sql.Open("postgres", dsn)
-		if err != nil {
-			log.Printf("Failed to connect to database (attempt %d): %v", i+1, err)
-		} else {
-			// Проверка доступности базы данных
-			err = db.Ping()
-			if err == nil {
-				log.Println("Successfully connected to the database")
-				return db
-			}
-			log.Printf("Failed to ping database (attempt %d): %v", i+1, err)
-		}
-		// Если не удалось подключиться, подождать 5 секунд и попробовать снова
-		time.Sleep(5 * time.Second)
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
+		dbUser, dbPassword, dbName, dbHost, dbPort)
+
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Printf("Error opening database: %v", err)
+		return nil, err
 	}
-	log.Fatalf("Unable to connect to the database after 5 attempts: %v", err)
-	return nil
+
+	err = db.Ping()
+	if err != nil {
+		log.Printf("Error pinging database: %v", err)
+		return nil, err
+	}
+
+	log.Println("Connected to the database!")
+	return db, nil
 }

@@ -4,6 +4,7 @@ import (
 	"api-gateway/pkg/client"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,18 +18,15 @@ func NewInventoryHandler(client *client.InventoryClient) *InventoryHandler {
 }
 
 func (h *InventoryHandler) ForwardToInventory(c *gin.Context) {
-	// Extract request details
 	method := c.Request.Method
-	path := c.Param("path") // Assuming path params for endpoint like `/inventory/:path`
+	path := strings.TrimPrefix(c.Param("path"), "/")
 	body, _ := ioutil.ReadAll(c.Request.Body)
 
-	// Forward request to inventory-service
 	response, err := h.Client.ForwardRequest(method, path, body)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Respond back to client
 	c.Data(http.StatusOK, "application/json", response)
 }
