@@ -38,9 +38,12 @@ func (s *OrderServer) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 
 // То же самое для других методов
 func (s *OrderServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Order, error) {
-	order, err := s.service.GetOrder(ctx, req.GetId())
+	order, err := s.service.GetOrder(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
 	return order, nil
+}
+func (s *OrderServer) UpdateOrderStatus(ctx context.Context, req *pb.UpdateOrderStatusRequest) (*pb.Order, error) {
+	return s.service.UpdateOrderStatus(ctx, req.GetId(), req.GetStatus())
 }

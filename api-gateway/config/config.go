@@ -11,7 +11,8 @@ type Config struct {
 
 func LoadConfig() Config {
 	return Config{
-		OrderServiceURL:     os.Getenv("http://localhost:8082"), // e.g., http://order-service:8082
-		InventoryServiceURL: os.Getenv("http://localhost:8081"), // e.g., http://inventory-service:8081
+		// Используй имена переменных окружения, например "ORDER_SERVICE_URL"
+		OrderServiceURL:     os.Getenv("ORDER_SERVICE_URL"),     // Чтение из переменной окружения
+		InventoryServiceURL: os.Getenv("INVENTORY_SERVICE_URL"), // Чтение из переменной окружения
 	}
 }

@@ -41,14 +41,14 @@ func main() {
 	pb.RegisterOrderServiceServer(grpcServer, orderServer)
 
 	// Start gRPC server
-	lis, err := net.Listen("tcp", ":"+"8080")
+	lis, err := net.Listen("tcp", ":"+"8082")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	// Graceful shutdown
 	go func() {
-		log.Printf("Order service running on port %s", "8080")
+		log.Printf("Order service running on port %s", "8082")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Failed to serve: %v", err)
 		}

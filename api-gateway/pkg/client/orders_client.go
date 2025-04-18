@@ -1,100 +1,57 @@
 package client
 
 import (
-	"api-gateway/pkg/models"
 	"context"
+	"log"
+	"time"
 
-	pb "github.com/suyundykovv/AP1_ASS2/proto"
+	pb "github.com/suyundykovv/protos/gen/go/order/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type OrderClient struct {
-	conn   *grpc.ClientConn
 	client pb.OrderServiceClient
 }
 
-func NewOrderClient(address string) (*OrderClient, error) {
-	conn, err := grpc.Dial(address, grpc.WithInsecure()) // Use WithTransportCredentials for production
+func NewOrderClient(address string) *OrderClient {
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, err
+		log.Fatalf("could not connect to order service: %v", err)
 	}
-
 	return &OrderClient{
-		conn:   conn,
 		client: pb.NewOrderServiceClient(conn),
-	}, nil
+	}
 }
 
-func (c *OrderClient) CreateOrder(order *models.Order) (*models.Order, error) {
-	pbReq := &pb.CreateOrderRequest{
-		UserId: int32(order.UserID),
-		Items:  order.Items,
-		Status: order.Status,
-		Total:  order.Total,
-	}
+func (oc *OrderClient) CreateOrder(request *pb.CreateOrderRequest) (*pb.Order, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	pbResp, err := c.client.CreateOrder(context.Background(), pbReq)
+	order, err := oc.client.CreateOrder(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-
-	return &models.Order{
-		ID:     pbResp.OrderId,
-		UserID: int(pbResp.UserId),
-		Items:  pbResp.Items,
-		Status: pbResp.Status,
-		Total:  pbResp.Total,
-	}, nil
+	return order, nil
 }
 
-func (c *OrderClient) GetOrder(orderID int32) (*models.Order, error) {
-	pbResp, err := c.client.GetOrder(context.Background(), &pb.GetOrderRequest{OrderId: orderID})
+func (oc *OrderClient) GetOrder(request *pb.GetOrderRequest) (*pb.Order, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	order, err := oc.client.GetOrder(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-
-	return &models.Order{
-		ID:     pbResp.OrderId,
-		UserID: int(pbResp.UserId),
-		Items:  pbResp.Items,
-		Status: pbResp.Status,
-		Total:  pbResp.Total,
-	}, nil
+	return order, nil
 }
+func (oc *OrderClient) UpdateOrderStatus(request *pb.UpdateOrderStatusRequest) (*pb.Order, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-func (c *OrderClient) UpdateOrder(order *models.Order) (*models.Order, error) {
-	pbReq := &pb.UpdateOrderRequest{
-		OrderId: order.ID,
-		UserId:  int32(order.UserID),
-		Items:   order.Items,
-		Status:  order.Status,
-		Total:   order.Total,
-	}
-
-	pbResp, err := c.client.UpdateOrder(context.Background(), pbReq)
+	order, err := oc.client.UpdateOrderStatus(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-
-	return &models.Order{
-		ID:     pbResp.OrderId,
-		UserID: int(pbResp.UserId),
-		Items:  pbResp.Items,
-		Status: pbResp.Status,
-		Total:  pbResp.Total,
-	}, nil
-}
-
-func (c *OrderClient) DeleteOrder(orderID int32) error {
-	_, err := c.client.DeleteOrder(context.Background(), &pb.DeleteOrderRequest{OrderId: orderID})
-	return err
-}
-
-func (c *OrderClient) ListOrders(userID int) ([]*models.Order, error) {
-	// Implement if your proto has ListOrders RPC, or simulate with multiple GetOrder calls
-	return nil, nil
-}
-
-func (c *OrderClient) Close() error {
-	return c.conn.Close()
+	return order, nil
 }

@@ -9,7 +9,7 @@ services:
       - order-service
     environment:
       - INVENTORY_SERVICE_URL=http://inventory-service:8081
-      - ORDER_SERVICE_URL=http://order-service:8082
+      - ORDER_SERVICE_URL=order-service:8082
 
   inventory-service:
     build:
