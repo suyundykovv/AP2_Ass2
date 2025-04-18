@@ -1,65 +1,68 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
 	"log"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"order-service/config"
-	"order-service/internal/handler"
+	api "order-service/internal/api"
 	"order-service/internal/repository"
-	pb "order-service/proto/order"
+	"order-service/internal/service"
+
+	pb "github.com/suyundykovv/protos/gen/go/order/v1"
 
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	// Load configuration
 	// Initialize database connection
-	var db *sql.DB
-	var err error
-
-	for i := 0; i < 5; i++ {
-		db, err = config.InitDB()
-		if err == nil {
-			log.Println("Successfully connected to the database!")
-			break
-		}
-		log.Printf("Error connecting to the database (attempt %d): %v\n", i+1, err)
-		time.Sleep(5 * time.Second)
-	}
-
+	db, err := config.InitDB()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to connect to the database after 5 attempts: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
-	// Initialize repository
-	orderRepo := repository.NewOrderRepository(db)
+	// Initialize the repository, service, and gRPC server
+	orderRepo := repository.NewSQLOrderRepository(db)
+	orderService := service.NewOrderService(orderRepo)
+	orderServer := api.NewOrderServer(orderService)
 
-	// Create gRPC server
-	grpcServer := grpc.NewServer()
-	orderServer := handler.NewOrderServer(orderRepo)
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(api.LoggingInterceptor),
+	)
+
 	pb.RegisterOrderServiceServer(grpcServer, orderServer)
 
-	// Get the service port from environment variables
-	port := os.Getenv("ORDER_SERVICE_PORT")
-	if port == "" {
-		port = "50052" // Default gRPC port if not set
-	}
-
-	// Start listening
-	lis, err := net.Listen("tcp", ":"+port)
+	// Start gRPC server
+	lis, err := net.Listen("tcp", ":"+"8080")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	log.Printf("Order Service gRPC server running on port %s", port)
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	// Graceful shutdown
+	go func() {
+		log.Printf("Order service running on port %s", "8080")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+
+	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	grpcServer.GracefulStop()
+	log.Println("Server exited properly")
 }

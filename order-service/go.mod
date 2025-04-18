@@ -4,12 +4,15 @@ go 1.22.0
 
 toolchain go1.23.4
 
-require github.com/joho/godotenv v1.5.1
-
 require (
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
-	google.golang.org/grpc v1.71.1 // indirect
+	github.com/gin-gonic/gin v1.10.0
+	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
+	github.com/suyundykovv/protos v0.0.3
+	google.golang.org/grpc v1.71.1
 )
+
+require google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
