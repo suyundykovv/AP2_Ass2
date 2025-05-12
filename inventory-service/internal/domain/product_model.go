@@ -1,53 +1,17 @@
-package models
-
-
-
-
-
-
-
-
-
-
-
-
-
+package domain
 
 type Product struct {
-	ID         int     `json:"id"`
+	ID         string  `json:"id"`
 	Name       string  `json:"name"`
-	CategoryID int     `json:"category_id"` // вместо Category string
+	CategoryID string  `json:"category_id"` // вместо Category string
 	Price      float64 `json:"price"`
 	Stock      int     `json:"stock"`
 }
 
 type Category struct {
-	ID   int    `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // type Discount struct {
 // 	ID                 string    `json:"id"`

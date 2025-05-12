@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"inventory-service/internal/domain"
 	"inventory-service/internal/repository"
-	"inventory-service/pkg/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +15,7 @@ import (
 
 func CreateCategoryHandler(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var category models.Category
+		var category domain.Category
 		if err := c.ShouldBindJSON(&category); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -70,7 +70,7 @@ func UpdateCategoryHandler(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		var updated models.Category
+		var updated domain.Category
 		if err := c.ShouldBindJSON(&updated); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

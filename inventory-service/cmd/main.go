@@ -1,50 +1,60 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
 	"inventory-service/config"
-	"inventory-service/internal/routes"
+	api "inventory-service/internal/api"
+	"inventory-service/internal/repository"
+	"inventory-service/internal/service"
 	"log"
+	"net"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	pb "github.com/suyundykovv/protos/gen/go/inventory/v1"
+
+	"google.golang.org/grpc"
 )
 
 func main() {
-	var db *sql.DB
-	var err error
-	for i := 0; i < 5; i++ {
-		db, err = config.InitDB()
-		if err == nil {
-			log.Println("Successfully connected to the database!")
-			break
-		}
-		log.Printf("Error connecting to the database (attempt %d): %v\n", i+1, err)
-		time.Sleep(5 * time.Second) 
-	}
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to connect to the database after 5 attempts: %v\n", err)
-		os.Exit(1)
+	db, err := config.InitDB()
+	if err == nil {
+		log.Println("Successfully connected to the database!")
 	}
 	defer db.Close()
+	inventoryRepo := repository.NewSQLProductRepository(db)
+	productService := service.NewProductService(inventoryRepo)
+	productServer := api.NewInventoryServer(productService)
 
-	router := gin.Default()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(api.LoggingInterceptor),
+	)
+	pb.RegisterInventoryServiceServer(grpcServer, productServer)
 
-	routes.SetupRoutes(router, db)
-
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "Inventory service is healthy"})
-	})
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8081" 
+	lis, err := net.Listen("tcp", ":"+"8081")
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
 	}
-	log.Printf("Inventory service is running on port %s", port)
-	if err := router.Run(":" + port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+
+	go func() {
+		log.Printf("User service running on port %s", "8074")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+
+	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	grpcServer.GracefulStop()
+	log.Println("Server exited properly")
+
 }

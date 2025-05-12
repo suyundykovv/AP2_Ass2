@@ -5,51 +5,51 @@ import (
 	"log"
 	"time"
 
-	pb "github.com/suyundykovv/protos/gen/go/inventory/v1"
+	pb "github.com/suyundykovv/protos/gen/go/user/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type InventoryClient struct {
-	client pb.InventoryServiceClient
+type UserClient struct {
+	client pb.UserServiceClient
 }
 
-func NewInventoryClient(address string) *InventoryClient {
+func NewUserClient(address string) *UserClient {
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("could not connect to order service: %v", err)
 	}
-	return &InventoryClient{
-		client: pb.NewInventoryServiceClient(conn),
+	return &UserClient{
+		client: pb.NewUserServiceClient(conn),
 	}
 }
 
-func (oc *InventoryClient) CreateProduct(request *pb.CreateProductRequest) (*pb.Product, error) {
+func (oc *UserClient) CreateUser(request *pb.CreateUserRequest) (*pb.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	order, err := oc.client.CreateProduct(ctx, request)
+	order, err := oc.client.CreateUser(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 	return order, nil
 }
 
-func (oc *InventoryClient) GetProduct(request *pb.GetProductRequest) (*pb.Product, error) {
+func (oc *UserClient) GetUser(request *pb.GetUserRequest) (*pb.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	order, err := oc.client.GetProduct(ctx, request)
+	user, err := oc.client.GetUser(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	return order, nil
+	return user, nil
 }
-func (oc *InventoryClient) UpdateProduct(request *pb.UpdateProductRequest) (*pb.Product, error) {
+func (oc *UserClient) UpdateUser(request *pb.UpdateUserRequest) (*pb.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	order, err := oc.client.UpdateProduct(ctx, request)
+	order, err := oc.client.UpdateUser(ctx, request)
 	if err != nil {
 		return nil, err
 	}

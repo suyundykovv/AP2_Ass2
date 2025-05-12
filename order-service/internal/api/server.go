@@ -45,5 +45,5 @@ func (s *OrderServer) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*p
 	return order, nil
 }
 func (s *OrderServer) UpdateOrderStatus(ctx context.Context, req *pb.UpdateOrderStatusRequest) (*pb.Order, error) {
-	return s.service.UpdateOrderStatus(ctx, req.GetId(), req.GetStatus())
+	return s.service.UpdateOrderStatus(ctx, req.Id, req.Status)
 }

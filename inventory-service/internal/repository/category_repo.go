@@ -3,22 +3,22 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"inventory-service/pkg/models"
+	"inventory-service/internal/domain"
 )
 
-func GetCategoryByID(db *sql.DB, id int) (*models.Category, error) {
-	var category models.Category
+func GetCategoryByID(db *sql.DB, id int) (*domain.Category, error) {
+	var category domain.Category
 	query := `SELECT id, name FROM categories WHERE id = $1`
 	err := db.QueryRow(query, id).Scan(&category.ID, &category.Name)
 	if err == sql.ErrNoRows {
-		return nil, nil 
+		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
 	return &category, nil
 }
 
-func UpdateCategory(db *sql.DB, id int, updatedCategory models.Category) error {
+func UpdateCategory(db *sql.DB, id int, updatedCategory domain.Category) error {
 	query := `UPDATE categories SET name = $1 WHERE id = $2`
 	result, err := db.Exec(query, updatedCategory.Name, id)
 	if err != nil {
@@ -33,12 +33,12 @@ func UpdateCategory(db *sql.DB, id int, updatedCategory models.Category) error {
 
 // repository/category.go
 
-func CreateCategory(db *sql.DB, category models.Category) error {
+func CreateCategory(db *sql.DB, category domain.Category) error {
 	query := `INSERT INTO categories (name) VALUES ($1)`
 	_, err := db.Exec(query, category.Name)
 	return err
 }
-func GetAllCategories(db *sql.DB) ([]models.Category, error) {
+func GetAllCategories(db *sql.DB) ([]domain.Category, error) {
 	query := `SELECT id, name FROM categories`
 	rows, err := db.Query(query)
 	if err != nil {
@@ -46,9 +46,9 @@ func GetAllCategories(db *sql.DB) ([]models.Category, error) {
 	}
 	defer rows.Close()
 
-	var categories []models.Category
+	var categories []domain.Category
 	for rows.Next() {
-		var cat models.Category
+		var cat domain.Category
 		if err := rows.Scan(&cat.ID, &cat.Name); err != nil {
 			return nil, err
 		}
