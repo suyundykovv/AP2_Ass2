@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/suyundykovv/protos v0.0.3
+	github.com/suyundykovv/protos v0.0.8
 	google.golang.org/grpc v1.71.1
 )
 

@@ -30,7 +30,7 @@ func LoggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySe
 }
 
 func (s *StatisticsServer) GetUserOrdersStatistics(ctx context.Context, req *pb.GetUserOrdersStatisticsRequest) (*pb.GetUserOrdersStatisticsResponse, error) {
-	stats, err := s.service.GetUserOrdersStatistics(ctx, req.UserId, req.TimePeriod)
+	stats, err := s.service.GetUserOrdersStatistics(ctx, req.UserId, *req.TimePeriod)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user orders statistics: %v", err)
 	}
@@ -38,7 +38,7 @@ func (s *StatisticsServer) GetUserOrdersStatistics(ctx context.Context, req *pb.
 }
 
 func (s *StatisticsServer) GetUserStatistics(ctx context.Context, req *pb.GetUserStatisticsRequest) (*pb.GetUserStatisticsResponse, error) {
-	stats, err := s.service.GetUserStatistics(ctx, req.TimePeriod)
+	stats, err := s.service.GetUserStatistics(ctx, *req.TimePeriod)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user statistics: %v", err)
 	}

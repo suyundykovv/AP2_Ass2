@@ -7,6 +7,7 @@ import (
 type Config struct {
 	OrderServiceURL     string
 	InventoryServiceURL string
+	UserServiceURL      string
 }
 
 func LoadConfig() Config {

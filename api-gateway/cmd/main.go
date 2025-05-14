@@ -32,7 +32,13 @@ func main() {
 
 	// Initialize Order client
 	orderClient := client.NewOrderClient(cfg.OrderServiceURL)
-
+	if orderClient == nil {
+		log.Fatalf("failed to create order client")
+	}
+	userClient := client.NewUserClient(cfg.UserServiceURL)
+	if userClient == nil {
+		log.Fatalf("failed to create userr client")
+	}
 	// Setup Gin router
 	router := gin.New()
 
@@ -48,20 +54,28 @@ func main() {
 
 	// Create a new OrderHandler
 	orderHandler := handler.NewOrderHandler(orderClient)
-
+	inventoryHandler := handler.NewInventoryHandler(inventoryClient)
+	userHandler := handler.NewUserHandler(userClient)
 	// API routes
 	api := router.Group("/api/v1")
 	{
-		// Order routes
 		orders := api.Group("/orders")
 		{
-			// Create Order
 			orders.POST("/", orderHandler.CreateOrder)
-
-			// Get Order by ID
 			orders.GET("/:id", orderHandler.GetOrder)
-
 			orders.PUT("/:id", orderHandler.UpdateOrder)
+		}
+		inventory := api.Group("/inventory")
+		{
+			inventory.POST("/", inventoryHandler.CreateProduct)
+			inventory.GET("/:id", inventoryHandler.GetProduct)
+			inventory.PUT("/:id", inventoryHandler.Updateproduct)
+		}
+		user := api.Group("/user")
+		{
+			user.POST("/", userHandler.CreateUser)
+			user.GET("/:id", userHandler.GetUser)
+			user.PUT("/:id", userHandler.UpdateUser)
 		}
 	}
 

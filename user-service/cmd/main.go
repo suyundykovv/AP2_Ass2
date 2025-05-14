@@ -34,7 +34,6 @@ func main() {
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(api.LoggingInterceptor),
 	)
-
 	pb.RegisterUserServiceServer(grpcServer, userServer)
 
 	lis, err := net.Listen("tcp", ":"+"8082")

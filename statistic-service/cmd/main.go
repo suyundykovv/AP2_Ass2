@@ -14,7 +14,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nats-io/nats.go"
 	pb "github.com/suyundykovv/protos/gen/go/statistics/v1"
 	"google.golang.org/grpc"
 )
@@ -29,7 +28,7 @@ func main() {
 	defer db.Close()
 
 	// Initialize NATS connection
-	nc, err := nats.Connect(cfg.NATS.URL)
+	nc, err := nats.Connect(cfg.NATS.URL, 5, 5)
 	if err != nil {
 		log.Fatalf("Failed to connect to NATS: %v", err)
 	}

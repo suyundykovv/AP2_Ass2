@@ -2,8 +2,10 @@ package nats
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"statistic-service/internal/service"
+	"time"
 
 	"github.com/nats-io/nats.go"
 	pb "github.com/suyundykovv/protos/gen/go/events/v1"
@@ -18,6 +20,28 @@ func NewSubscriber(svc service.StatisticService, conn *nats.Conn) *Subscriber {
 	return &Subscriber{service: svc, conn: conn}
 }
 
+// ConnectWithRetry attempts to connect to NATS with retries
+func Connect(url string, maxAttempts int, delay time.Duration) (*nats.Conn, error) {
+	var (
+		conn *nats.Conn
+		err  error
+	)
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		conn, err = nats.Connect(url)
+		if err == nil {
+			return conn, nil
+		}
+
+		if attempt < maxAttempts {
+			log.Printf("Failed to connect to NATS (attempt %d/%d): %v. Retrying in %v...",
+				attempt, maxAttempts, err, delay)
+			time.Sleep(delay)
+		}
+	}
+
+	return nil, fmt.Errorf("after %d attempts, last error: %w", maxAttempts, err)
+}
 func (s *Subscriber) Subscribe() error {
 	if _, err := s.conn.Subscribe("orders.*", func(msg *nats.Msg) {
 		var event pb.OrderEvent

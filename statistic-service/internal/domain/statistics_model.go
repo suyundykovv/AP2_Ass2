@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type Order struct {
 	ID        string
 	UserID    string
@@ -14,3 +16,12 @@ const (
 	OrderStatusCanceled  = "CANCELED"
 	OrderStatusCompleted = "COMPLETED"
 )
+
+type OrderEvent struct {
+	EventType  string
+	OrderID    string
+	UserID     string
+	Timestamp  time.Time
+	ItemsCount int
+	Total      float64
+}

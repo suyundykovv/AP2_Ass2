@@ -29,25 +29,19 @@ func NewStatisticService(repo repository.StatisticRepository) StatisticService {
 }
 
 func (s *statisticService) ProcessOrderCreated(event *pb.OrderEvent) error {
-	itemsCount := 0
 	total := 0.0
-	for _, item := range event.Items {
-		itemsCount += int(item.Quantity)
-		total += item.Price * float64(item.Quantity)
-	}
 
-	timestamp, err := time.Parse(time.RFC3339, event.Timestamp)
+	timestamp, err := time.Parse(time.RFC3339, time.RFC3339)
 	if err != nil {
 		return err
 	}
 
 	orderEvent := &repository.OrderEvent{
-		EventType:  "created",
-		OrderID:    event.OrderId,
-		UserID:     event.UserId,
-		Timestamp:  timestamp,
-		ItemsCount: itemsCount,
-		Total:      total,
+		OrderID:   event.Id,
+		UserID:    event.UserId,
+		Timestamp: timestamp,
+		Total:     total,
+		EventType: "created",
 	}
 
 	return s.repo.SaveOrderEvent(context.Background(), orderEvent)
@@ -64,17 +58,16 @@ func (s *statisticService) ProcessOrderDeleted(event *pb.OrderEvent) error {
 }
 
 func (s *statisticService) ProcessInventoryEvent(event *pb.InventoryEvent) error {
-	timestamp, err := time.Parse(time.RFC3339, event.Timestamp)
+	timestamp, err := time.Parse(time.RFC3339, time.RFC3339)
 	if err != nil {
 		return err
 	}
 
 	inventoryEvent := &repository.InventoryEvent{
-		EventType:   event.EventType,
-		ProductID:   event.ProductId,
-		CategoryID:  event.CategoryId,
-		Timestamp:   timestamp,
-		StockChange: int(event.StockChange),
+		EventType:  event.EventType,
+		ProductID:  event.ProductId,
+		CategoryID: event.CategoryId,
+		Timestamp:  timestamp,
 	}
 
 	return s.repo.SaveInventoryEvent(context.Background(), inventoryEvent)
