@@ -46,7 +46,7 @@ func Load() *Config {
 			URL: getEnv("NATS_URL", "nats://localhost:4222"),
 		},
 		GRPC: GRPCConfig{
-			Port: getEnv("GRPC_PORT", "8083"),
+			Port: getEnv("GRPC_PORT", "8084"),
 		},
 	}
 }

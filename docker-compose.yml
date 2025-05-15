@@ -1,4 +1,15 @@
+version: "3.9"
+
 services:
+  nats:
+    image: nats:2.9.0-alpine
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # Monitoring port
+    networks:
+      - app-network
+    restart: unless-stopped
+
   api-gateway:
     build:
       context: ./api-gateway
@@ -8,8 +19,12 @@ services:
       - inventory-service
       - order-service
     environment:
-      - INVENTORY_SERVICE_URL=http://inventory-service:8081
+      - INVENTORY_SERVICE_URL=inventory-service:8081
       - ORDER_SERVICE_URL=order-service:8082
+      - USER_SERVICE_URL=user-service:8083
+      - STATISTICS_SERVICE_URL=statistic-service:8084
+    networks:
+      - app-network
 
   inventory-service:
     build:
@@ -24,6 +39,8 @@ services:
       DB_NAME: inventory_service_db
     depends_on:
       - db-inventory
+    networks:
+      - app-network
 
   order-service:
     build:
@@ -39,6 +56,58 @@ services:
       ORDER_SERVICE_PORT: 8082
     depends_on:
       - db-order
+    networks:
+      - app-network
+
+  user-service:
+    build:
+      context: ./user-service
+    ports:
+      - "8083:8083"
+    environment:
+      DB_HOST: db-user
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: user_service_db
+      USER_SERVICE_PORT: 8083
+    depends_on:
+      - db-user
+    networks:
+      - app-network
+
+  statistic-service:
+    build:
+      context: ./statistic-service
+    ports:
+      - "8084:8084"
+    environment:
+      DB_HOST: db-statistic
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: statistic_service_db
+      STATISTIC_SERVICE_PORT: 8084
+      NATS_URL: nats://nats:4222  # Added NATS connection
+    depends_on:
+      - db-statistic
+      - nats  # Added NATS dependency
+    networks:
+      - app-network
+
+  db-statistic:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: statistic_service_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - db_statistic_data:/var/lib/postgresql/data
+      - ./statistic-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
 
   db-order:
     image: postgres:15
@@ -51,6 +120,8 @@ services:
     volumes:
       - db_order_data:/var/lib/postgresql/data
       - ./order-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
 
   db-inventory:
     image: postgres:15
@@ -63,7 +134,29 @@ services:
     volumes:
       - db_inventory_data:/var/lib/postgresql/data
       - ./inventory-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  db-user:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user_service_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - db_user_data:/var/lib/postgresql/data
+      - ./user-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
 
 volumes:
   db_order_data:
   db_inventory_data:
+  db_user_data:
+  db_statistic_data:
+
+networks:
+  app-network:
+    driver: bridge

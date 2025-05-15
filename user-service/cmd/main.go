@@ -36,7 +36,7 @@ func main() {
 	)
 	pb.RegisterUserServiceServer(grpcServer, userServer)
 
-	lis, err := net.Listen("tcp", ":"+"8082")
+	lis, err := net.Listen("tcp", ":"+"8083")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}

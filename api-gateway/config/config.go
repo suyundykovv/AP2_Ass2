@@ -5,15 +5,17 @@ import (
 )
 
 type Config struct {
-	OrderServiceURL     string
-	InventoryServiceURL string
-	UserServiceURL      string
+	OrderServiceURL      string
+	InventoryServiceURL  string
+	UserServiceURL       string
+	StatisticsServiceURL string
 }
 
 func LoadConfig() Config {
 	return Config{
-		// Используй имена переменных окружения, например "ORDER_SERVICE_URL"
-		OrderServiceURL:     os.Getenv("ORDER_SERVICE_URL"),     // Чтение из переменной окружения
-		InventoryServiceURL: os.Getenv("INVENTORY_SERVICE_URL"), // Чтение из переменной окружения
+		OrderServiceURL:      os.Getenv("ORDER_SERVICE_URL"),
+		InventoryServiceURL:  os.Getenv("INVENTORY_SERVICE_URL"),
+		UserServiceURL:       os.Getenv("USER_SERVICE_URL"),
+		StatisticsServiceURL: os.Getenv("STATISTICS_SERVICE_URL"),
 	}
 }

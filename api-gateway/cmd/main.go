@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("Failed to create inventory client")
 	}
 
-	// Initialize Order client
+	log.Println("ORDER_SERVICE_URL:", cfg.OrderServiceURL)
 	orderClient := client.NewOrderClient(cfg.OrderServiceURL)
 	if orderClient == nil {
 		log.Fatalf("failed to create order client")
@@ -39,7 +39,10 @@ func main() {
 	if userClient == nil {
 		log.Fatalf("failed to create userr client")
 	}
-	// Setup Gin router
+	statisticsClient := client.NewStatisticsClient(cfg.StatisticsServiceURL)
+	if statisticsClient == nil {
+		log.Fatalf("failed to create stats client")
+	} // Setup Gin router
 	router := gin.New()
 
 	// Middleware stack
@@ -53,6 +56,7 @@ func main() {
 	})
 
 	// Create a new OrderHandler
+	statisticsHandler := handler.NewStatisticsHandler(statisticsClient)
 	orderHandler := handler.NewOrderHandler(orderClient)
 	inventoryHandler := handler.NewInventoryHandler(inventoryClient)
 	userHandler := handler.NewUserHandler(userClient)
@@ -76,6 +80,11 @@ func main() {
 			user.POST("/", userHandler.CreateUser)
 			user.GET("/:id", userHandler.GetUser)
 			user.PUT("/:id", userHandler.UpdateUser)
+		}
+		stats := api.Group("/statistics")
+		{
+			stats.GET("/users/:id/orders", statisticsHandler.GetUserOrdersStatistics)
+			stats.GET("/users", statisticsHandler.GetUserStatistics)
 		}
 	}
 

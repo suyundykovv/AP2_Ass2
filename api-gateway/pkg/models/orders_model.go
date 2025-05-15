@@ -66,3 +66,11 @@ type CreateOrderRequest struct {
 type UpdateOrderStatusRequest struct {
 	Status OrderStatus `json:"status" binding:"required"`
 }
+type OrderEvent struct {
+	EventType  string
+	OrderID    string
+	UserID     string
+	Timestamp  time.Time
+	ItemsCount int
+	Total      float64
+}

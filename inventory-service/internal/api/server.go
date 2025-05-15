@@ -41,5 +41,5 @@ func (s *InventoryServer) GetProductByID(ctx context.Context, req *pb.GetProduct
 	return order, nil
 }
 func (s *InventoryServer) UpdateProduct(ctx context.Context, req *pb.UpdateProductRequest) (*pb.Product, error) {
-	return s.service.UpdateProduct(ctx, req.Id)
+	return s.service.UpdateProduct(ctx, req.Id, req)
 }

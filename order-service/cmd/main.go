@@ -11,6 +11,7 @@ import (
 
 	"order-service/config"
 	api "order-service/internal/api"
+	"order-service/internal/nats"
 	"order-service/internal/repository"
 	"order-service/internal/service"
 
@@ -28,12 +29,17 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
+	nc, err := nats.Connect("nats://localhost:4222", 5, 5)
+	if err != nil {
+		log.Fatalf("Failed to connect to NATS: %v", err)
+	}
+	defer nc.Close()
+	natsPub := nats.NewPublisher(nc)
 
 	// Initialize the repository, service, and gRPC server
 	orderRepo := repository.NewSQLOrderRepository(db)
-	orderService := service.NewOrderService(orderRepo)
+	orderService := service.NewOrderService(orderRepo, natsPub)
 	orderServer := api.NewOrderServer(orderService)
-
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(api.LoggingInterceptor),
 	)

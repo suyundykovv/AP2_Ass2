@@ -4,6 +4,7 @@ import (
 	"context"
 	"inventory-service/config"
 	api "inventory-service/internal/api"
+	"inventory-service/internal/nats"
 	"inventory-service/internal/repository"
 	"inventory-service/internal/service"
 	"log"
@@ -24,8 +25,14 @@ func main() {
 		log.Println("Successfully connected to the database!")
 	}
 	defer db.Close()
+	nc, err := nats.Connect("nats://localhost:4222", 5, 5)
+	if err != nil {
+		log.Fatalf("Failed to connect to NATS: %v", err)
+	}
+	defer nc.Close()
+	natsPub := nats.NewPublisher(nc)
 	inventoryRepo := repository.NewSQLProductRepository(db)
-	productService := service.NewProductService(inventoryRepo)
+	productService := service.NewProductService(inventoryRepo, natsPub)
 	productServer := api.NewInventoryServer(productService)
 
 	grpcServer := grpc.NewServer(
