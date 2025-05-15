@@ -8,6 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/joho/godotenv v1.5.1
 	github.com/nats-io/nats.go v1.42.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/suyundykovv/protos v0.0.8
 )
 
